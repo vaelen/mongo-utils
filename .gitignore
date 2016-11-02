@@ -1,0 +1,18 @@
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake
+cmake_install.cmake
+compile_commands.json
+
+# Directories that are generated
+/docs
+/tags
+
+# Filetypes
+*~
+*.pyc
+*.swp
+
+# OSX
+.DS_Store
