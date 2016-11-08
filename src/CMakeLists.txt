@@ -53,5 +53,5 @@ target_link_libraries(Client
 add_executable(connect connect.cpp)
 target_link_libraries(connect Client)
 
-add_executable(moveshard moveshard.cpp)
-target_link_libraries(moveshard Client)
+add_executable(removeshard removeshard.cpp)
+target_link_libraries(removeshard Client)

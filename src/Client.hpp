@@ -27,11 +27,21 @@
 #include <mongocxx/exception/exception.hpp>
 
 namespace MongoUtils {
+  class Shard {
+  public:
+    const std::string name;
+    const std::string host;
+    const bool is_draining;
+    Shard(std::string name): name(name), host(""), is_draining(false) {}
+    Shard(std::string name, std::string host): name(name), host(host), is_draining(false) {}
+    Shard(std::string name, std::string host, bool is_draining): name(name), host(host), is_draining(is_draining) {}
+  };
+  
   class Client {
   public:
     Client(std::string &uri_string): inst(), uri(uri_string), client(uri) {}
     void connect();
-    std::vector<std::string> list_shards();
+    std::vector<Shard> shards();
     void drain_shard(std::string &shard_name);
   private:
     mongocxx::instance inst;

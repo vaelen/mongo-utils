@@ -29,7 +29,7 @@ namespace MongoUtils {
     BOOST_LOG_TRIVIAL(debug) << "Successfully Connected";
   }
 
-  std::vector<std::string> Client::list_shards() {
+  std::vector<Shard> Client::shards() {
     database admin = client["admin"];
     BOOST_LOG_TRIVIAL(debug) << "Listing Shards";
     document::value list_shards_cmd = builder::stream::document{} << "listShards" << 1 << builder::stream::finalize;
@@ -37,11 +37,15 @@ namespace MongoUtils {
     document::value result = admin.run_command(list_shards_cmd.view());
     BOOST_LOG_TRIVIAL(trace) << "Command Returned: " << bsoncxx::to_json(result);
     array::view shards = result.view()["shards"].get_array();
-    std::vector<std::string> shard_vector{};
+    std::vector<Shard> shard_vector{};
     for(auto shard : shards) {
       BOOST_LOG_TRIVIAL(debug) << "Shard: " << bsoncxx::to_json(shard.get_document().view());
-      bsoncxx::stdx::string_view id = shard["_id"].get_utf8();
-      shard_vector.push_back(id.to_string());
+      std::string id = (std::string)(bsoncxx::stdx::string_view)shard["_id"].get_utf8();
+      std::string host = "";
+      if(shard["host"]) host = (std::string)(bsoncxx::stdx::string_view)shard["host"].get_utf8();
+      bool is_draining = false;
+      if(shard["is_draining"]) is_draining = (bool)shard["is_draining"].get_bool();
+      shard_vector.push_back(Shard(id, host, is_draining));
     }
     return shard_vector;
   }
