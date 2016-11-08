@@ -1,4 +1,6 @@
-# Copyright 2016 MongoDB Inc.
+# Based on a CMakeLists.txt file provided by MongoDB.
+
+# Copyright 2016 Andrew Young <andrew@vaelen.org>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
