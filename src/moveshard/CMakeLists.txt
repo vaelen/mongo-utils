@@ -10,10 +10,6 @@ find_package(LibMongoCXX ${LIBMONGOCXX_REQUIRED_VERSION} REQUIRED)
 
 set(MOVESHARD_VERSION 0.0.1)
 
-set(moveshard_sources
-  test.cpp
-)
-
 include_directories(
     ${LIBBSONCXX_INCLUDE_DIRS}
     ${LIBMONGOCXX_INCLUDE_DIRS}
@@ -26,9 +22,11 @@ link_directories(
   ${LIBMONGOCXX_LIBRARY_DIRS}
 )
 
-add_executable(testapp test.cpp)
-target_link_libraries(testapp ${LIBBSONCXX_LIBRARIES} ${LIBMONGOCXX_LIBRARIES})
+add_library(Client Client.cpp)
+target_link_libraries(Client ${LIBBSONCXX_LIBRARIES} ${LIBMONGOCXX_LIBRARIES})
 
-#add_executable(moveshard
- # ${moveshard_sources}
-#)
+add_executable(connect connect.cpp)
+target_link_libraries(connect Client)
+
+add_executable(moveshard moveshard.cpp)
+target_link_libraries(moveshard Client)
