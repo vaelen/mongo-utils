@@ -1,4 +1,7 @@
 #include <iostream>
+#include <vector>
+
+#include <boost/log/trivial.hpp>
 
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/json.hpp>
@@ -12,6 +15,8 @@ namespace MongoUtils {
   public:
     Client(std::string &uri_string): inst(), uri(uri_string), client(uri) {}
     void connect();
+    std::vector<std::string> list_shards();
+    void drain_shard(std::string &shard_name);
   private:
     mongocxx::instance inst;
     mongocxx::uri uri;

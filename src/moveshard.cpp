@@ -12,6 +12,10 @@ int main(int argc, char** argv) {
   try {
     Client client{uri_string};
     client.connect();
+    vector<string> shard_names = client.list_shards();
+    for(string shard_name : shard_names) {
+      cout << "Shard: " << shard_name << endl;
+    }
   } catch (const exception &ex) {
     cout << "Exception: " << ex.what() << endl;
   }
