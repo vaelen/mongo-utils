@@ -42,10 +42,11 @@ namespace MongoUtils {
     Client(std::string &uri_string): inst(), uri(uri_string), client(uri) {}
     void connect();
     std::vector<Shard> shards();
-    void drain_shard(std::string &shard_name);
+    void remove_shard(const std::string &shard_name);
   private:
     mongocxx::instance inst;
     mongocxx::uri uri;
     mongocxx::client client;
+    void _verify_remove_shard(const std::string &shard_name);
   };
 }

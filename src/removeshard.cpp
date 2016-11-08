@@ -29,8 +29,25 @@ int main(int argc, char** argv) {
     Client client{uri_string};
     client.connect();
     vector<Shard> shards = client.shards();
-    for(Shard shard : shards) {
-      cout << "Shard: " << shard.name << "\t" << shard.host << "\t" << (shard.is_draining ? "[Draining]" : "") << endl;
+    if(shards.empty()) {
+      cout << "No Shards" << endl;
+    } else {
+      string shard_name = "";
+      bool found_shard = false;
+      for(Shard shard : shards) {
+        cout << "Shard: " << shard.name << "\tHost: " << shard.host << "\tDraining: " << (shard.is_draining ? "Yes" : "No") << endl;
+        if(!found_shard && shard.is_draining) {
+          cout << "\tFound Draining Shard" << endl;
+          shard_name = shard.name;
+          found_shard = true;
+        }
+      }
+      if(!found_shard) {
+        // TODO: Remove this debug line later
+        shard_name = shards[0].name;
+        cout << "No Draining Shards.  Removing Shard " << shard_name << endl;
+      }
+      client.remove_shard(shard_name);
     }
   } catch (const exception &ex) {
     cout << "Exception: " << ex.what() << endl;

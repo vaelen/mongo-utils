@@ -50,6 +50,16 @@ namespace MongoUtils {
     return shard_vector;
   }
 
-  void Client::drain_shard(std::string &shard_name) {
+  void Client::remove_shard(const std::string &shard_name) {
+    _verify_remove_shard(shard_name);
+  }
+
+  void Client::_verify_remove_shard(const std::string &shard_name) {
+    BOOST_LOG_TRIVIAL(debug) << "Removing Shard: " << shard_name;
+    database admin = client["admin"];
+    document::value remove_shard_cmd = builder::stream::document{} << "removeShard" << shard_name << builder::stream::finalize;
+    BOOST_LOG_TRIVIAL(trace) << "Command: " << to_json(remove_shard_cmd.view());
+    document::value result = admin.run_command(remove_shard_cmd.view());
+    BOOST_LOG_TRIVIAL(trace) << "Command Returned: " << bsoncxx::to_json(result);
   }
 }
