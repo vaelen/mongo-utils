@@ -1,2 +1,3 @@
-testapp
+*.a
+connect
 moveshard
