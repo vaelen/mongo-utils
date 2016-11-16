@@ -32,9 +32,6 @@ namespace MongoUtils {
     const std::string name;
     const std::string host;
     const bool is_draining;
-    Shard(std::string name): name(name), host(""), is_draining(false) {}
-    Shard(std::string name, std::string host): name(name), host(host), is_draining(false) {}
-    Shard(std::string name, std::string host, bool is_draining): name(name), host(host), is_draining(is_draining) {}
     Shard(bsoncxx::document::view shard);
     std::string to_string();
   };
