@@ -55,3 +55,6 @@ target_link_libraries(connect Client)
 
 add_executable(removeshard removeshard.cpp)
 target_link_libraries(removeshard Client)
+
+add_executable(status status.cpp)
+target_link_libraries(status Client)

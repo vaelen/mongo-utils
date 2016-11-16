@@ -17,14 +17,14 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/log/trivial.hpp>
-
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/json.hpp>
 
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
 #include <mongocxx/exception/exception.hpp>
+
+#include <boost/log/trivial.hpp>
 
 namespace MongoUtils {
   class Shard {
@@ -35,18 +35,35 @@ namespace MongoUtils {
     Shard(std::string name): name(name), host(""), is_draining(false) {}
     Shard(std::string name, std::string host): name(name), host(host), is_draining(false) {}
     Shard(std::string name, std::string host, bool is_draining): name(name), host(host), is_draining(is_draining) {}
+    Shard(bsoncxx::document::view shard);
+    std::string to_string();
+  };
+
+  class Chunk {
+  public:
+    const std::string _id;
+    const std::string ns;
+    const bsoncxx::document::value min;
+    const bsoncxx::document::value max;
+    const std::string shard;
+    Chunk(bsoncxx::document::view chunk);
+    std::string to_string();
   };
   
   class Client {
   public:
-    Client(std::string &uri_string): inst(), uri(uri_string), client(uri) {}
+    Client(std::string &uri_string): inst(), uri(uri_string), client(uri) { init_logging(); }
     void connect();
     std::vector<Shard> shards();
+    std::vector<Chunk> chunks(const std::string &shard_name);
+    void move_chunks(const std::string &from_shard_name, const std::string &to_shard_name);
     void remove_shard(const std::string &shard_name);
+    void log_level(const boost::log::trivial::severity_level level);
   private:
     mongocxx::instance inst;
     mongocxx::uri uri;
     mongocxx::client client;
+    void init_logging();
     void _verify_remove_shard(const std::string &shard_name);
   };
 }

@@ -16,11 +16,52 @@
 
 #include "Client.hpp"
 
+#include <sstream>
+
+#include <mongocxx/cursor.hpp>
+
+#include "client-logging.cpp"
+
 using namespace bsoncxx;
 using namespace mongocxx;
 
 namespace MongoUtils {
+  Chunk::Chunk(document::view chunk):
+    _id((std::string)(bsoncxx::stdx::string_view)chunk["_id"].get_utf8()),
+    ns((std::string)(bsoncxx::stdx::string_view)chunk["ns"].get_utf8()),
+    min(document::value(chunk["min"].get_document())),
+    max(document::value(chunk["max"].get_document())),
+    shard((std::string)(bsoncxx::stdx::string_view)chunk["shard"].get_utf8()) {}
+
+  std::string Chunk::to_string() {
+    std::stringstream s;
+    s << "{ ";
+    s << "_id: \"" << _id << "\"";
+    s << ", ns: \"" << ns << "\"";
+    s << ", shard: \"" << shard << "\"";
+    s << ", min: " << to_json(min.view());
+    s << ", max: " << to_json(max.view());
+    s << " }";
+    return s.str();
+  }
+
+  Shard::Shard(document::view shard):
+    name((std::string)(bsoncxx::stdx::string_view)shard["_id"].get_utf8()),
+    host((shard["host"]) ? (std::string)(bsoncxx::stdx::string_view)shard["host"].get_utf8() : ""),
+    is_draining((shard["is_draining"]) ? (bool)shard["is_draining"].get_bool() : false) {}
+  
+  std::string Shard::to_string() {
+    std::stringstream s;
+    s << "{ ";
+    s << "name: \"" << name << "\"";
+    s << ", host: \"" << host << "\"";
+    s << ", draining: " << is_draining;
+    s << " }";
+    return s.str();    
+  }
+  
   void Client::connect() {
+    BOOST_LOG_FUNCTION();
     BOOST_LOG_TRIVIAL(debug) << "Connecting to " << uri.to_string();
     database admin = client["admin"];
     document::value ping_cmd = builder::stream::document{} << "ping" << 1 << builder::stream::finalize;
@@ -30,6 +71,7 @@ namespace MongoUtils {
   }
 
   std::vector<Shard> Client::shards() {
+    BOOST_LOG_FUNCTION();
     database admin = client["admin"];
     BOOST_LOG_TRIVIAL(debug) << "Listing Shards";
     document::value list_shards_cmd = builder::stream::document{} << "listShards" << 1 << builder::stream::finalize;
@@ -40,21 +82,36 @@ namespace MongoUtils {
     std::vector<Shard> shard_vector{};
     for(auto shard : shards) {
       BOOST_LOG_TRIVIAL(debug) << "Shard: " << bsoncxx::to_json(shard.get_document().view());
-      std::string id = (std::string)(bsoncxx::stdx::string_view)shard["_id"].get_utf8();
-      std::string host = "";
-      if(shard["host"]) host = (std::string)(bsoncxx::stdx::string_view)shard["host"].get_utf8();
-      bool is_draining = false;
-      if(shard["is_draining"]) is_draining = (bool)shard["is_draining"].get_bool();
-      shard_vector.push_back(Shard(id, host, is_draining));
+      shard_vector.push_back(Shard(shard.get_document().view()));
     }
     return shard_vector;
   }
 
+  std::vector<Chunk> Client::chunks(const std::string &shard_name) {
+    BOOST_LOG_FUNCTION();
+    database config = client["config"];
+    BOOST_LOG_TRIVIAL(debug) << "Listing Chunks for Shard : " << shard_name;
+    document::value find_chunks = builder::stream::document{} << "shard" << shard_name << builder::stream::finalize;
+    cursor chunks = config["chunks"].find(find_chunks.view());
+    std::vector<Chunk> chunk_vector{};
+    for(auto chunk : chunks) {
+      BOOST_LOG_TRIVIAL(debug) << "Chunk: " << to_json(chunk);
+      chunk_vector.push_back(Chunk(chunk));
+    }
+    return chunk_vector;
+  }
+  
+  void Client::move_chunks(const std::string &from_shard_name, const std::string &to_shard_name) {
+    BOOST_LOG_FUNCTION();
+  }
+  
   void Client::remove_shard(const std::string &shard_name) {
+    BOOST_LOG_FUNCTION();
     _verify_remove_shard(shard_name);
   }
 
   void Client::_verify_remove_shard(const std::string &shard_name) {
+    BOOST_LOG_FUNCTION();
     BOOST_LOG_TRIVIAL(debug) << "Removing Shard: " << shard_name;
     database admin = client["admin"];
     document::value remove_shard_cmd = builder::stream::document{} << "removeShard" << shard_name << builder::stream::finalize;
