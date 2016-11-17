@@ -17,7 +17,7 @@ project(MONGO_UTILS)
 # set( CMAKE_VERBOSE_MAKEFILE on )
 
 set(BOOST_REQUIRED_VERSION 1.58)
-find_package(Boost ${BOOST_REQUIRED_VERSION} REQUIRED COMPONENTS log)
+find_package(Boost ${BOOST_REQUIRED_VERSION} REQUIRED COMPONENTS log program_options)
 add_definitions(-DBOOST_ALL_DYN_LINK)
 
 set(LIBBSONCXX_REQUIRED_VERSION 3.0.2)
@@ -58,3 +58,9 @@ target_link_libraries(removeshard Client)
 
 add_executable(status status.cpp)
 target_link_libraries(status Client)
+
+add_executable(emptyshard emptyshard.cpp)
+target_link_libraries(emptyshard
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Client
+)

@@ -100,9 +100,45 @@ namespace MongoUtils {
     }
     return chunk_vector;
   }
-  
-  void Client::move_chunks(const std::string &from_shard_name, const std::string &to_shard_name) {
+
+  void Client::empty_shard(const std::string &shard_name) {
     BOOST_LOG_FUNCTION();
+    BOOST_LOG_TRIVIAL(debug) << "Emptying Shard " << shard_name;
+    std::vector<std::string> shard_names;
+    for(auto shard: shards()) {
+      if (shard_name != shard.name) {
+        shard_names.push_back(shard.name);
+      }
+    }
+      
+    auto it = shard_names.begin();
+    for(auto chunk: chunks(shard_name)) {
+      std::string shard_name = *it;
+      move_chunk(chunk, shard_name);
+      it++;
+      if (it == shard_names.end()) {
+        it = shard_names.begin();
+      }
+    }
+  }
+  
+  void Client::move_chunk(const Chunk &chunk, const std::string &to_shard_name) {
+    BOOST_LOG_FUNCTION();
+    BOOST_LOG_TRIVIAL(debug) << "Moving Chunk " << chunk._id << " from " << chunk.shard << " to " << to_shard_name;
+
+    database admin = client["admin"];
+    
+    document::value move_chunk_cmd = builder::stream::document{}
+    << "moveChunk" << chunk.ns
+    << "bounds" << builder::stream::open_array << chunk.min << chunk.max << builder::stream::close_array
+    << "to" << to_shard_name
+    << builder::stream::finalize;
+      
+    BOOST_LOG_TRIVIAL(trace) << "Command: " << to_json(move_chunk_cmd.view());
+
+    document::value result = admin.run_command(move_chunk_cmd.view());
+
+    BOOST_LOG_TRIVIAL(trace) << "Command Returned: " << bsoncxx::to_json(result);
   }
   
   void Client::remove_shard(const std::string &shard_name) {

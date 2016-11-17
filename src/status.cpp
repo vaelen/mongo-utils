@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include "Client.hpp"
+#include <boost/log/trivial.hpp>
 
 using namespace std;
 using namespace MongoUtils;
@@ -27,6 +28,7 @@ int main(int argc, char** argv) {
   }
   try {
     Client client{uri_string};
+    client.log_level(boost::log::trivial::trace);
     client.connect();
     vector<Shard> shards = client.shards();
     if(shards.empty()) {

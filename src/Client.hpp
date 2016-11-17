@@ -53,7 +53,8 @@ namespace MongoUtils {
     void connect();
     std::vector<Shard> shards();
     std::vector<Chunk> chunks(const std::string &shard_name);
-    void move_chunks(const std::string &from_shard_name, const std::string &to_shard_name);
+    void empty_shard(const std::string &shard_name);
+    void move_chunk(const Chunk &chunk, const std::string &to_shard_name);
     void remove_shard(const std::string &shard_name);
     void log_level(const boost::log::trivial::severity_level level);
   private:
